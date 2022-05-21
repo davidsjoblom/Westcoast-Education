@@ -15,7 +15,7 @@ namespace Courses_API.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<StudentViewModel> GetStudentByIdAsync(int id)
+        public Task<StudentViewModel?> GetStudentByIdAsync(int id)
         {
             throw new NotImplementedException();
         }

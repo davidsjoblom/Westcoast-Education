@@ -11,6 +11,7 @@ namespace Courses_API.Helpers
     {
         public AutoMapperProfiles()
         {
+            CreateMap<PostCourseViewModel, Course>(); //OBS! inte komplett mappning
             CreateMap<Course, CourseViewModel>()
                 .ForMember(dest => dest.CourseId, options => options.MapFrom(src => src.Id));
 
@@ -23,6 +24,7 @@ namespace Courses_API.Helpers
             CreateMap<Subject, SubjectViewModel>()
                 .ForMember(dest => dest.SubjectId, options => options.MapFrom(src => src.Id));
 
+            CreateMap<PostTeacherViewModel, Teacher>(); //OBS! inte komplett mappning
             CreateMap<Teacher, TeacherViewModel>()
                 .ForMember(dest => dest.TeacherId, options => options.MapFrom(src => src.Id))
                 .ForMember(dest => dest.TeacherName, options => options.MapFrom(src => string.Concat(src.FirstName, " ", src.LastName)));
