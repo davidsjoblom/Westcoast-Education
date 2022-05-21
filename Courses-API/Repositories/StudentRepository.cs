@@ -1,38 +1,74 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Courses_API.Data;
 using Courses_API.Interfaces;
+using Courses_API.Models;
 using Courses_API.ViewModels.Student;
+using Microsoft.EntityFrameworkCore;
 
 namespace Courses_API.Repositories
 {
     public class StudentRepository : IStudentRepository
     {
-        public Task AddStudentAsync(PostStudentViewModel model)
+        private readonly ApplicationContext _context;
+        private readonly IMapper _mapper;
+        public StudentRepository(ApplicationContext context, IMapper mapper)
         {
-            throw new NotImplementedException();
+            _mapper = mapper;
+            _context = context;
         }
 
-        public Task DeleteStudentAsync(int id)
+        public async Task AddStudentAsync(PostStudentViewModel model)
         {
-            throw new NotImplementedException();
+            var student = _mapper.Map<Student>(model);
+            await _context.Students.AddAsync(student);
         }
 
-        public Task<StudentViewModel?> GetStudentByIdAsync(int id)
+        public async Task DeleteStudentAsync(int id)
         {
-            throw new NotImplementedException();
+            var student = await _context.Students.FindAsync(id);
+            if (student is null)
+            {
+                throw new Exception($"Ingen student med id: {id} hittades");
+            }
+            _context.Students.Remove(student);
         }
 
-        public Task<List<StudentViewModel>> ListAllStudentsAsync()
+        public async Task<StudentViewModel?> GetStudentByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Students
+                .Where(s => s.Id == id)
+                .ProjectTo<StudentViewModel>(_mapper.ConfigurationProvider)
+                .SingleOrDefaultAsync();
         }
 
-        public Task<bool> SaveAllAsync()
+        public async Task<List<StudentViewModel>> ListAllStudentsAsync()
         {
-            throw new NotImplementedException();
+            return await _context.Students
+                .ProjectTo<StudentViewModel>(_mapper.ConfigurationProvider)
+                .ToListAsync();
         }
 
-        public Task UpdateStudentAsync(int id, PostStudentViewModel model)
+        public async Task<bool> SaveAllAsync()
         {
-            throw new NotImplementedException();
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task UpdateStudentAsync(int id, PostStudentViewModel model)
+        {
+            var student = await _context.Students.FindAsync(id);
+            if (student is null)
+            {
+                throw new Exception($"Ingen student med id: {id} hittades");
+            }
+
+            student.Address = model.Address;
+            student.Email = model.Email;
+            student.FirstName = model.FirstName;
+            student.LastName = model.LastName;
+            student.PhoneNr = model.PhoneNr;
+
+            _context.Students.Update(student);
         }
     }
 }

@@ -55,7 +55,7 @@ namespace Courses_API.Repositories
             _context.Courses.Remove(course);
         }
 
-        public async Task<CourseViewModel?> GetCourseByCourseNrAsync(int courseNr)
+        public async Task<CourseViewModel?> GetCourseByCourseNrAsync(int courseNr) //inte komplett
         {
             return await _context.Courses
                 .Where(c => c.CourseNr == courseNr)
@@ -63,7 +63,7 @@ namespace Courses_API.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<CourseViewModel?> GetCourseByIdAsync(int id)
+        public async Task<CourseViewModel?> GetCourseByIdAsync(int id)//inte komplett
         {
             return await _context.Courses
                 .Where(c => c.Id == id)
@@ -71,7 +71,7 @@ namespace Courses_API.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<List<CourseViewModel>> ListAllCoursesAsync()
+        public async Task<List<CourseViewModel>> ListAllCoursesAsync() //inte komplett
         {
             return await _context.Courses
                 .ProjectTo<CourseViewModel>(_mapper.ConfigurationProvider)
@@ -100,7 +100,7 @@ namespace Courses_API.Repositories
             }
 
             var teacher = await _context.Teachers
-                .Where(t => string.Concat(t.FirstName, " ", t.LastName).ToLower() == model.TeacherName!.ToLower().Trim())
+                .Where(t => string.Concat(t.FirstName, " ", t.LastName).ToLower() == model.TeacherName!.ToLower())
                 .SingleOrDefaultAsync();
             if (teacher is null)
             {

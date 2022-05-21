@@ -1,38 +1,86 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Courses_API.Data;
 using Courses_API.Interfaces;
+using Courses_API.Models;
 using Courses_API.ViewModels.Subject;
+using Microsoft.EntityFrameworkCore;
 
 namespace Courses_API.Repositories
 {
     public class SubjectRepository : ISubjectRepository
     {
-        public Task AddSubjectAsync(PostSubjectViewModel model)
+        private readonly ApplicationContext _context;
+        private readonly IMapper _mapper;
+        public SubjectRepository(ApplicationContext context, IMapper mapper)
         {
-            throw new NotImplementedException();
+            _mapper = mapper;
+            _context = context;
         }
 
-        public Task DeleteSubjectAsync(int id)
+        public async Task AddSubjectAsync(PostSubjectViewModel model)
         {
-            throw new NotImplementedException();
+            //Kolla att man inte skapar en dublett
+            var response = await _context.Subjects
+                .Where(s => s.Name!.ToLower() == model.Name!.ToLower())
+                .SingleOrDefaultAsync();
+            if (response is not null)
+            {
+                throw new Exception($"Ämnet '{model.Name}' finns redan i systemet");
+            }
+            var subject = _mapper.Map<Subject>(model);
+            await _context.Subjects.AddAsync(subject);
         }
 
-        public Task<SubjectViewModel?> GetSubjectByIdAsync(int id)
+        public async Task DeleteSubjectAsync(int id)
         {
-            throw new NotImplementedException();
+            var subject = await _context.Subjects.FindAsync(id);
+            if (subject is null)
+            {
+                throw new Exception($"Inget ämne med id: {id} hittades");
+            }
+            _context.Subjects.Remove(subject);
         }
 
-        public Task<List<SubjectViewModel>> ListAllSubjectsAsync()
+        public async Task<SubjectViewModel?> GetSubjectByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Subjects
+                .Where(s => s.Id == id)
+                .ProjectTo<SubjectViewModel>(_mapper.ConfigurationProvider)
+                .SingleOrDefaultAsync();
         }
 
-        public Task<bool> SaveAllAsync()
+        public async Task<List<SubjectViewModel>> ListAllSubjectsAsync()
         {
-            throw new NotImplementedException();
+            return await _context.Subjects
+                .ProjectTo<SubjectViewModel>(_mapper.ConfigurationProvider)
+                .ToListAsync();
         }
 
-        public Task UpdateSubjectAsync(int id, PostSubjectViewModel model)
+        public async Task<bool> SaveAllAsync()
         {
-            throw new NotImplementedException();
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task UpdateSubjectAsync(int id, PostSubjectViewModel model)
+        {
+            //Kolla att man inte skapar en dublett
+            var subject = await _context.Subjects
+                .Where(s => s.Name!.ToLower() == model.Name!.ToLower())
+                .SingleOrDefaultAsync();
+            if (subject is not null)
+            {
+                throw new Exception($"Ämnet '{model.Name}' finns redan i systemet");
+            }
+
+            subject = await _context.Subjects.FindAsync(id);
+            if (subject is null)
+            {
+                throw new Exception($"Inget ämne med id: {id} hittades");
+            }
+
+            subject.Name = model.Name;
+            _context.Subjects.Update(subject);
         }
     }
 }
