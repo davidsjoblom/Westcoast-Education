@@ -21,7 +21,7 @@ namespace Courses_API.Repositories
         public async Task AddTeacherAsync(PostTeacherViewModel model)
         {
             //kolla att ämnena finns
-            var split = model.Subjects!.Split(" ");
+            var split = model.Expertise!.Split(" ");
             var subjects = new List<Subject>();
             foreach (string s in split) 
             {
@@ -79,7 +79,7 @@ namespace Courses_API.Repositories
                 throw new Exception($"Ingen lärare med id: {id} hittades");
             }
 
-            var split = model.Subjects!.Split(" ");
+            var split = model.Expertise!.Split(" ");
             var subjects = new List<Subject>();
             foreach (string s in split) 
             {
