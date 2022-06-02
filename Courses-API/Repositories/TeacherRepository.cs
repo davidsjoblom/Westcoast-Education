@@ -1,38 +1,106 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Courses_API.Data;
 using Courses_API.Interfaces;
+using Courses_API.Models;
 using Courses_API.ViewModels.Teacher;
+using Microsoft.EntityFrameworkCore;
 
 namespace Courses_API.Repositories
 {
     public class TeacherRepository : ITeacherRepository
     {
-        public Task AddTeacherAsync(PostTeacherViewModel model)
+        private readonly ApplicationContext _context;
+        private readonly IMapper _mapper;
+        public TeacherRepository(ApplicationContext context, IMapper mapper)
         {
-            throw new NotImplementedException();
+            _mapper = mapper;
+            _context = context;
         }
 
-        public Task DeleteTeacherAsync(int id)
+        public async Task AddTeacherAsync(PostTeacherViewModel model)
         {
-            throw new NotImplementedException();
+            //kolla att ämnena finns
+            var split = model.Subjects!.Split(" ");
+            var subjects = new List<Subject>();
+            foreach (string s in split) 
+            {
+                var subject = await _context.Subjects
+                    .Where(x => x.Name.ToLower() == s.ToLower())
+                    .SingleOrDefaultAsync();
+                if (subject is null)
+                {
+                    throw new Exception($"Ämnet {s} finns inte i systemet");
+                }
+                subjects.Add(subject);
+            }
+
+            var teacher = _mapper.Map<Teacher>(model);
+            teacher.Subjects = subjects;
+
+            await _context.AddAsync(teacher);
         }
 
-        public Task<TeacherViewModel?> GetTeacherByIdAsync(int id)
+        public async Task DeleteTeacherAsync(int id)
         {
-            throw new NotImplementedException();
+            var teacher = await _context.Teachers.FindAsync(id);
+            if (teacher is null)
+            {
+                throw new Exception($"Ingen lärare med id: {id} hittades");
+            }
+            _context.Teachers.Remove(teacher);
         }
 
-        public Task<List<TeacherViewModel>> ListAllTeachersAsync()
+        public async Task<TeacherViewModel?> GetTeacherByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Teachers
+                .Where(t => t.Id == id)
+                .ProjectTo<TeacherViewModel>(_mapper.ConfigurationProvider)
+                .SingleOrDefaultAsync();
         }
 
-        public Task<bool> SaveAllAsync()
+        public async Task<List<TeacherViewModel>> ListAllTeachersAsync()
         {
-            throw new NotImplementedException();
+            return await _context.Teachers
+                .ProjectTo<TeacherViewModel>(_mapper.ConfigurationProvider)
+                .ToListAsync();
         }
 
-        public Task UpdateTeacherAsync(int id, PostTeacherViewModel model)
+        public async Task<bool> SaveAllAsync()
         {
-            throw new NotImplementedException();
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task UpdateTeacherAsync(int id, PostTeacherViewModel model)
+        {
+            var teacher = await _context.Teachers.FindAsync(id);
+            if (teacher is null)
+            {
+                throw new Exception($"Ingen lärare med id: {id} hittades");
+            }
+
+            var split = model.Subjects!.Split(" ");
+            var subjects = new List<Subject>();
+            foreach (string s in split) 
+            {
+                var subject = await _context.Subjects
+                    .Where(x => x.Name.ToLower() == s.ToLower())
+                    .SingleOrDefaultAsync();
+                if (subject is null)
+                {
+                    throw new Exception($"Ämnet {s} finns inte i systemet");
+                }
+                subjects.Add(subject);
+            }
+
+            teacher.Address = model.Address;
+            teacher.Email = model.Email;
+            teacher.FirstName = model.FirstName;
+            teacher.LastName = model.LastName;
+            teacher.PhoneNr = model.PhoneNr;
+            teacher.Subjects = subjects;
+
+            _context.Teachers.Update(teacher);
         }
     }
 }

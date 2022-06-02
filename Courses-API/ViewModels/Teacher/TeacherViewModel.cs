@@ -9,6 +9,6 @@ namespace Courses_API.ViewModels.Teacher
         public string? Email { get; set; }
         public int PhoneNr { get; set; }
         public string? Address { get; set; }
-        public List<SubjectViewModel> Subjects { get; set; } = new List<SubjectViewModel>();
+        public List<SubjectViewModel> Subjects { get; set; } = new();
     }
 }
