@@ -39,9 +39,10 @@ namespace Courses_API.Repositories
             }
 
             //Kolla att läraren finns
+            //OBS! denna funktion stödjer inte flera lärare med samma namn
             var teacher = await _context.Teachers
                 .Where(t => string.Concat(t.FirstName, " ", t.LastName).ToLower() == model.TeacherName!.ToLower().Trim())
-                .SingleOrDefaultAsync();
+                .FirstOrDefaultAsync();
             if (teacher is null)
             {
                 throw new Exception($"Läraren {model.TeacherName} hittades inte i systemet");
@@ -54,6 +55,21 @@ namespace Courses_API.Repositories
             await _context.Courses.AddAsync(course);
         }
 
+        public async Task AddStudentToCourseAsync(int studentId, int courseId)
+        {
+            var student = await _context.Students.FindAsync(studentId);
+            if (student is null)
+            {
+                throw new Exception($"Ingen student med id: {studentId} hittades");
+            }
+            var course = await _context.Courses.FindAsync(courseId);
+            if (course is null)
+            {
+                throw new Exception($"Ingen kurs med id: {courseId} hittades");
+            }
+            course.Students.Add(student);
+        }
+
         public async Task DeleteCourseAsync(int id)
         {
             var course = await _context.Courses.FindAsync(id);
@@ -62,6 +78,28 @@ namespace Courses_API.Repositories
                 throw new Exception($"Ingen kurs med id: {id} hittades");
             }
             _context.Courses.Remove(course);
+        }
+
+        public async Task DeleteStudentFromCourseAsync(int studentId, int courseId)
+        {
+            var student = await _context.Students.FindAsync(studentId);
+            if (student is null)
+            {
+                throw new Exception($"Ingen student med id: {studentId} hittades");
+            }
+            var course = await _context.Courses
+                .Include(x => x.Students)
+                .Where(c => c.Id == courseId)
+                .SingleOrDefaultAsync();
+            if (course is null)
+            {
+                throw new Exception($"Ingen kurs med id: {courseId} hittades");
+            }
+            var success = course.Students.Remove(student);
+            if (!success)
+            {
+                throw new Exception("Kunde inte ta bort studenten eller så var den inte registrerad på kursen från början");
+            }
         }
 
         public async Task<CourseViewModel?> GetCourseByCourseNrAsync(int courseNr)

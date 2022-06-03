@@ -20,9 +20,18 @@ namespace Courses_API.Repositories
 
         public async Task AddStudentAsync(PostStudentViewModel model)
         {
+            var response = await _context.Students
+                .Where(s => s.Email == model.Email)
+                .SingleOrDefaultAsync();
+            if (response is not null)
+            {
+                throw new Exception($"En student med email: {model.Email} finns redan i systemet");
+            }
             var student = _mapper.Map<Student>(model);
             await _context.Students.AddAsync(student);
         }
+
+        
 
         public async Task DeleteStudentAsync(int id)
         {
@@ -68,6 +77,16 @@ namespace Courses_API.Repositories
             if (student is null)
             {
                 throw new Exception($"Ingen student med id: {id} hittades");
+            }
+            if (student.Email != model.Email)
+            {
+                var response = await _context.Students
+                    .Where(s => s.Email == model.Email)
+                    .SingleOrDefaultAsync();
+                if (response is not null)
+                {
+                    throw new Exception($"En annan student med email: {model.Email} finns redan i systemet");
+                }
             }
 
             student.Address = model.Address;

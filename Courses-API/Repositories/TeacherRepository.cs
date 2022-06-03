@@ -23,7 +23,7 @@ namespace Courses_API.Repositories
             //kolla att ämnena finns
             var split = model.Expertise!.Split(" ");
             var subjects = new List<Subject>();
-            foreach (string s in split) 
+            foreach (string s in split)
             {
                 var subject = await _context.Subjects
                     .Where(x => x.Name.ToLower() == s.ToLower())
@@ -33,6 +33,15 @@ namespace Courses_API.Repositories
                     throw new Exception($"Ämnet {s} finns inte i systemet");
                 }
                 subjects.Add(subject);
+            }
+
+            //kolla att email inte redan finns
+            var response = await _context.Teachers
+                .Where(t => t.Email == model.Email)
+                .SingleOrDefaultAsync();
+            if (response is not null)
+            {
+                throw new Exception($"En lärare med email: {model.Email} finns redan i systemet");
             }
 
             var teacher = _mapper.Map<Teacher>(model);
@@ -93,7 +102,7 @@ namespace Courses_API.Repositories
 
             var split = model.Expertise!.Split(" ");
             var subjects = new List<Subject>();
-            foreach (string s in split) 
+            foreach (string s in split)
             {
                 var subject = await _context.Subjects
                     .Where(x => x.Name.ToLower() == s.ToLower())

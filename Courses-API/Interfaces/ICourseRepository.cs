@@ -10,7 +10,9 @@ namespace Courses_API.Interfaces
         public Task<List<CourseViewModel>> GetCoursesBySubjectAsync(string subject);
         public Task<CourseWithStudentsViewModel?> GetCourseWithStudentsAsync(int id);
         public Task AddCourseAsync(PostCourseViewModel model);
+        public Task AddStudentToCourseAsync(int studentId, int courseId);
         public Task DeleteCourseAsync(int id);
+        public Task DeleteStudentFromCourseAsync(int studentId, int courseId);
         public Task UpdateCourseAsync(int id, PostCourseViewModel model);
         public Task<bool> SaveAllAsync();
     }

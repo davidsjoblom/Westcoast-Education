@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Courses_API.Controllers
 {
     [ApiController]
-    [Route("api/Courses")]
+    [Route("api/courses")]
     public class CoursesController : ControllerBase
     {
         private readonly ICourseRepository _repo;
@@ -107,6 +107,36 @@ namespace Courses_API.Controllers
                 await _repo.UpdateCourseAsync(id, model);
                 if (await _repo.SaveAllAsync()) return NoContent();
                 return StatusCode(500, "Det gick inte att uppdatera kursen");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
+        [HttpPost("addstudent/{courseId}")]
+        public async Task<ActionResult> AddStudentToCourse([FromQuery] int studentId, int courseId)
+        {
+            try
+            {
+                await _repo.AddStudentToCourseAsync(studentId, courseId);
+                if (await _repo.SaveAllAsync()) return NoContent();
+                return StatusCode(500, "Nått gick tokigt när det skulle sparas");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
+        [HttpDelete("removestudent/{courseId}")]
+        public async Task<ActionResult> RemoveStudentFromCourse([FromQuery] int studentId, int courseId)
+        {
+            try
+            {
+                await _repo.DeleteStudentFromCourseAsync(studentId, courseId);
+                if (await _repo.SaveAllAsync()) return NoContent();
+                return StatusCode(500, "Nått gick tokigt när det skulle sparas");
             }
             catch (Exception e)
             {
