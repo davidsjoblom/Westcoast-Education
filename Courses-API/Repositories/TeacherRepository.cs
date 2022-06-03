@@ -51,6 +51,14 @@ namespace Courses_API.Repositories
             _context.Teachers.Remove(teacher);
         }
 
+        public async Task<TeacherViewModel?> GetTeacherByEmailAsync(string email)
+        {
+            return await _context.Teachers
+                .Where(t => t.Email!.ToLower() == email)
+                .ProjectTo<TeacherViewModel>(_mapper.ConfigurationProvider)
+                .SingleOrDefaultAsync();
+        }
+
         public async Task<TeacherViewModel?> GetTeacherByIdAsync(int id)
         {
             return await _context.Teachers
@@ -73,7 +81,11 @@ namespace Courses_API.Repositories
 
         public async Task UpdateTeacherAsync(int id, PostTeacherViewModel model)
         {
-            var teacher = await _context.Teachers.FindAsync(id);
+            var teacher = await _context.Teachers
+            .Include(t => t.Subjects)
+            .Where(x => x.Id == id)
+            .SingleOrDefaultAsync();
+
             if (teacher is null)
             {
                 throw new Exception($"Ingen lärare med id: {id} hittades");

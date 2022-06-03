@@ -43,6 +43,32 @@ namespace Courses_API.Controllers
             return Ok(response);
         }
 
+        [HttpGet]
+        public async Task<ActionResult<List<CourseViewModel>>> GetCoursesBySubject([FromQuery] string subject)
+        {
+            try 
+            {
+                return Ok(await _repo.GetCoursesBySubjectAsync(subject));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
+        [HttpGet("students/{id}")]
+        public async Task<ActionResult<CourseWithStudentsViewModel>> GetCourseWithStudents(int id) 
+        {
+            try
+            {
+                return Ok(await _repo.GetCourseWithStudentsAsync(id));
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
         [HttpPost]
         public async Task<ActionResult> AddCourse(PostCourseViewModel model) 
         {

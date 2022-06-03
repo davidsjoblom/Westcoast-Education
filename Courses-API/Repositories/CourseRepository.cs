@@ -20,6 +20,15 @@ namespace Courses_API.Repositories
 
         public async Task AddCourseAsync(PostCourseViewModel model)
         {
+            //Kolla att kursnummret är unikt
+            var response = await _context.Courses
+                .Where(c => c.CourseNr == model.CourseNr)
+                .SingleOrDefaultAsync();
+            if (response is not null)
+            {
+                throw new Exception($"En kurs med kursnummret: {model.CourseNr} finns redan i systemet");
+            }
+            
             //Kolla att ämnet finns
             var subject = await _context.Subjects
                 .Where(s => s.Name!.ToLower() == model.SubjectName!.ToLower())
@@ -55,7 +64,7 @@ namespace Courses_API.Repositories
             _context.Courses.Remove(course);
         }
 
-        public async Task<CourseViewModel?> GetCourseByCourseNrAsync(int courseNr) //inte komplett
+        public async Task<CourseViewModel?> GetCourseByCourseNrAsync(int courseNr)
         {
             return await _context.Courses
                 .Where(c => c.CourseNr == courseNr)
@@ -63,7 +72,7 @@ namespace Courses_API.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<CourseViewModel?> GetCourseByIdAsync(int id)//inte komplett
+        public async Task<CourseViewModel?> GetCourseByIdAsync(int id)
         {
             return await _context.Courses
                 .Where(c => c.Id == id)
@@ -71,7 +80,24 @@ namespace Courses_API.Repositories
                 .SingleOrDefaultAsync();
         }
 
-        public async Task<List<CourseViewModel>> ListAllCoursesAsync() //inte komplett
+        public async Task<List<CourseViewModel>> GetCoursesBySubjectAsync(string subject)
+        {
+            return await _context.Courses
+                //.Include(t => t.Subject) dis rly neccessary?? dont think so...
+                .Where(x => x.Subject.Name!.ToLower() == subject.ToLower())
+                .ProjectTo<CourseViewModel>(_mapper.ConfigurationProvider)
+                .ToListAsync();
+        }
+
+        public async Task<CourseWithStudentsViewModel?> GetCourseWithStudentsAsync(int id)
+        {
+            return await _context.Courses
+                .Where(t => t.Id == id)
+                .ProjectTo<CourseWithStudentsViewModel>(_mapper.ConfigurationProvider)
+                .SingleOrDefaultAsync();
+        }
+
+        public async Task<List<CourseViewModel>> ListAllCoursesAsync()
         {
             return await _context.Courses
                 .ProjectTo<CourseViewModel>(_mapper.ConfigurationProvider)
@@ -107,14 +133,24 @@ namespace Courses_API.Repositories
                 throw new Exception($"Läraren {model.TeacherName} hittades inte i systemet");
             }
 
+            //Kolla att kursnummret förblir unikt
+            if (course.CourseNr != model.CourseNr)
+            {
+                var response = await _context.Courses
+                    .Where(c => c.CourseNr == model.CourseNr)
+                    .SingleOrDefaultAsync();
+                if (response is not null)
+                {
+                    throw new Exception($"En annan kurs med kursnummer: {model.CourseNr} finns redan i systemet");
+                }
+            }
+
             course.CourseNr = model.CourseNr;
             course.Description = model.Description;
             course.Details = model.Details;
             course.Duration = model.Duration;
             course.Title = model.Title;
-            //course.SubjectId = subject.Id; borde fixa det själv?
             course.Subject = subject;
-            //course.TeacherId = teacher.Id; borde fixa det själv?
             course.Teacher = teacher;
 
             _context.Courses.Update(course);

@@ -14,6 +14,8 @@ namespace Courses_API.Helpers
             CreateMap<PostCourseViewModel, Course>(); //OBS! inte komplett mappning
             CreateMap<Course, CourseViewModel>()
                 .ForMember(dest => dest.CourseId, options => options.MapFrom(src => src.Id));
+            CreateMap<Course, CourseWithStudentsViewModel>()
+                .ForMember(dest => dest.CourseId, options => options.MapFrom(src => src.Id));
 
             CreateMap<PostStudentViewModel, Student>();
             CreateMap<Student, StudentViewModel>()

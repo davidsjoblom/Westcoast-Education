@@ -34,6 +34,14 @@ namespace Courses_API.Repositories
             _context.Students.Remove(student);
         }
 
+        public async Task<StudentViewModel?> GetStudentByEmailAsync(string email)
+        {
+            return await _context.Students
+                .Where(s => s.Email!.ToLower() == email)
+                .ProjectTo<StudentViewModel>(_mapper.ConfigurationProvider)
+                .SingleOrDefaultAsync();
+        }
+
         public async Task<StudentViewModel?> GetStudentByIdAsync(int id)
         {
             return await _context.Students
